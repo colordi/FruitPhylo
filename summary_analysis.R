@@ -6,7 +6,7 @@ data <- read_csv("data/YunnanFruit9370sppData.csv")
 
 # 气候区
 # 数据转换为0/1，并汇总求和绘图
-data %>%
+(p <- data %>%
   mutate(across(c(Tropic, Temperate, Subtropic),
                 ~ifelse(. == "Absence", 0, 1))) %>%
   group_by(Fruittype) %>%
@@ -20,15 +20,21 @@ data %>%
   geom_bar(stat = "identity", position = "fill") +
   geom_text(aes(label = nums), position = position_fill()) +
   scale_y_continuous(labels = percent_format())
+)
+# save plot
+ggsave("result/climate_regions_barplot.png",plot=p,dpi=300)
 
 # 生长型
-data %>%
+(p <- data %>%
   group_by(Fruittype, Growthform) %>%
   summarize(nums = n()) %>%
   ggplot(mapping = aes(x = Growthform, y = nums, fill = Fruittype)) +
   geom_bar(stat = "identity", position = "fill") +
   geom_text(aes(label = nums), position = position_fill()) +
   scale_y_continuous(labels = percent_format())
+)
+# save plot
+ggsave("result/growth_forms,_barplot.png",plot=p,dpi=300)
 
 # spearman相关分析
 ## 相关性分析
@@ -52,4 +58,5 @@ data %>%
                           true = 1,
                           false = 0)
          ) %>% 
-  cor(method = "spearman")
+  cor(method = "spearman") %>% 
+  corrplot::corrplot(method = "square",addCoef.col = "black",type = "lower")
