@@ -1,9 +1,16 @@
+library(phylolm) # 注意，这一行需要先在ggtree前载入
+library(geiger)
+library(rr2)
+
+
 library(tidyverse)
 library(V.PhyloMaker2)
+
 library(ggtree)
 library(tidytree)
 library(ggtreeExtra)
 library(ggnewscale)
+
 
 # 读取数据
 data <- read_csv("data/YunnanFruit9370sppData.csv")
@@ -58,4 +65,52 @@ newtree <- groupOTU(tree, split(data$species_name, data$Fruittype))
 # save plot
 ggsave("result/phylogeny_plot.png",plot=p,dpi=300)
 
+# 系统发育信号计算
+# 数据转换为0/1
+data_01 <- data %>%
+  # 选择对应的数据列
+  select(Fruittype, Growthform, Tropic, Subtropic, Temperate) %>%
+  # 将其转换为0/1格式
+  mutate(Fruittype = if_else(Fruittype == "fleshy",
+                             true = 1,
+                             false = 0),
+         Growthform = if_else(Growthform == "herb",
+                              true = 1,
+                              false = 0),
+         Tropic = if_else(Tropic == "Tropic",
+                          true = 1,
+                          false = 0),
+         Temperate = if_else(Temperate == "Temperate",
+                             true = 1,
+                             false = 0),
+         Subtropic = if_else(Subtropic == "Subtropic",
+                             true = 1,
+                             false = 0))
 
+## 对树进行标准化
+st_tree <- tree
+st_tree$edge.length <- tree$edge.length/max(node.depth.edgelength(tree))
+## 我们的数据是tibble格式的，没有rowname
+## phyloglm必需依赖rowname，因此首先要添加rowname，并命名检查
+row.names(data_01) <- data$species_name
+name.check(st_tree,data_01) # 命名检查
+## 果实类型结果测试
+phyloglm(Fruittype ~ 1, data=data_01, phy=st_tree)
+R2_lik(phyloglm(Fruittype ~ 1, data=data_01, phy=tree))
+## 自定义函数对5个性状进行计算
+phy_sign <- function () {
+  z <- list(NULL)
+  z[[1]] <- phyloglm(Fruittype ~ 1, data=data_01, phy=st_tree)
+  z[[2]] <- phyloglm(Growthform ~ 1, data=data_01, phy=st_tree)
+  z[[3]] <- phyloglm(Tropic ~ 1, data=data_01, phy=st_tree)
+  z[[4]] <- phyloglm(Subtropic ~ 1, data=data_01, phy=st_tree)
+  z[[5]] <- phyloglm(Temperate ~ 1, data=data_01, phy=st_tree)
+  df <- data.frame(traits=c("fruit", "growthform","Tropic", "Subtropic", "Temperate"))
+  for (i in 1:5) {
+    df$alpha[i] <- z[[i]]$alpha
+    df$r2[i] <- R2_lik(z[[i]])
+  }
+  return(df)
+}
+
+phy_sign()
