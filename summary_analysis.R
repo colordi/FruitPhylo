@@ -34,7 +34,7 @@ ggsave("result/climate_regions_barplot.png",plot=p,dpi=300)
   scale_y_continuous(labels = percent_format())
 )
 # save plot
-ggsave("result/growth_forms,_barplot.png",plot=p,dpi=300)
+ggsave("result/growth_forms_barplot.png",plot=p,dpi=300)
 
 # spearman相关分析
 ## 相关性分析

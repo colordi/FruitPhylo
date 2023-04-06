@@ -114,3 +114,9 @@ phy_sign <- function () {
 }
 
 phy_sign()
+#       traits      alpha        r2
+# 1      fruit  0.7786089 0.8634150
+# 2 growthform  0.7467027 0.8681852
+# 3     Tropic  7.6515278 0.2004165
+# 4  Subtropic 54.5207242 0.0000000
+# 5  Temperate 11.0576667 0.1218708
