@@ -151,6 +151,22 @@ merged_data <- merged_data %>%
          `species.relative` = Species,
          Species = paste0(Species, suffix)
          )
+# 添加新的分类标准
+merged_data <- merged_data %>% 
+  mutate(Soilclass = case_when(
+    Soiltype %in% c("Gleysol", "Histosol") ~ "Hydric Soils",
+    Soiltype %in% c("Podzol", "Cambisol") ~ "Forest Soils",
+    Soiltype %in% c("Chernozem", "Phaeozem", "Kastanozem", "Luvisol") ~ "Grassland Soils",
+    is.na(Soiltype) ~ NA,
+    TRUE ~ "Arid Soils"))%>%
+  mutate(Biomeclass = case_when(
+    Biome %in% c("BOR","WDS","TMS","TRS") ~ "seasonal",
+    Biome %in% c("DES","TMR","TRR") ~ "non_seasonal",
+    is.na(Biome) ~ NA))
 ## 导出到本地
 write.csv(merged_data, file = "merged_data.csv", row.names = FALSE)
+
+
+useful::build.x(~Soilclass+Biomeclass+Height_category, merged_data,contrasts = F) %>% cbind(merged_data)
+
 
